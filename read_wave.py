@@ -34,38 +34,68 @@ if __name__ == '__main__':
 	def get_levels(file):
         	file_name = file.replace(current_dir + "/" + folder + "/", "")
 	        print("Processing: " + file_name)
+		mode = "r"
+		sizes = {1: "B", 2: "h", 4: "i"}
+		wav_file = wave.open(file, mode)
 
-		frate = 11025.0
+		channels = wav_file.getnchannels()
+		samples = wav_file.getsampwidth()
+		print(samples)
+		frames = wav_file.getnframes()
+		fmt_size = sizes[samples]
+		fmt = "<" + fmt_size * channels
 
-		wav_file = wave.open(file, 'r')
-		data_size = wav_file.getnframes()
-		data = wav_file.readframes(data_size)
-		vol  = struct.unpack("%ih" % (data_size* wav_file.getnchannels()), data)
+		while wav_file.tell() < wav_file.getnframes():
+			try:
+				decoded = struct.unpack(fmt, wav_file.readframes(channels))
+			except struct.error:
+	        		# (w.getnframes() - w.tell()) < chunk_size
+				tmp_size = wav_file.getnframes() - wav_file.tell()
+				tmp_fmt = "<{0}h".format(channels)
+				decoded = struct.unpack(tmp_fmt, wav_file.readframes(tmp_size))
+
+
+
+
+#		while wav_file.tell() < wav_file.getnframes():
+#			decoded = struct.unpack(fmt, wav_file.readframes(channels))
+#			data.append(decoded)
+#
+#		print(data)
+		
+
+#		frames = wav_file.getnframes()
+#		rate = wav_file.getframerate()
+##		duration = frames / rate
+####		data_size = frames * rate
+#		data = wav_file.readframes(frames)
+
+		#vol  = struct.unpack("%ih" % (frames* wav_file.getnchannels()), data)
+
 		wav_file.close()
-
 		# calculate frequency
-		data = struct.unpack('{n}h'.format(n=data_size), data)
-		data = np.array(data)
-		w = np.fft.fft(data)
-		freqs = np.fft.fftfreq(len(w))
-		print("Min Freq: " + str(freqs.min()), "Max Freq: " + str(freqs.max()))
-
-		# Find the peak in the coefficients
-		idx = np.argmax(np.abs(w))
-		freq = freqs[idx]
-		freq_in_hertz = abs(freq * frate)
-		print("Median Freq in Hertz: " + str(freq_in_hertz))
-
-		# Calculate volume
-		vol = [float(val) / pow(2, 15) for val in vol]
-		print("Min Vol: " + str(min(vol)), "Max Vol: " + str(max(vol)))
-
-		median_vol = np.mean(vol)
-		print("Median Volume: " + str(median_vol))
-
-		# Add to master array
-		song = [file, freq_in_hertz, median_vol]
-		songs.append(song)
+#		data = struct.unpack("<h".format(n=rate), data)
+#		data = np.array(data)
+#		w = np.fft.fft(data)
+#		freqs = np.fft.fftfreq(len(w))
+#		print("Min Freq: " + str(freqs.min()), "Max Freq: " + str(freqs.max()))
+#
+#		# Find the peak in the coefficients
+#		idx = np.argmax(np.abs(w))
+#		freq = freqs[idx]
+#		freq_in_hertz = abs(freq * frate)
+#		print("Median Freq in Hertz: " + str(freq_in_hertz))
+#
+#		# Calculate volume
+#		vol = [float(val) / pow(2, 15) for val in vol]
+#		print("Min Vol: " + str(min(vol)), "Max Vol: " + str(max(vol)))
+#
+##		median_vol = np.mean(vol)
+#		print("Median Volume: " + str(median_vol))
+#
+#		# Add to master array
+#		song = [file, freq_in_hertz, median_vol]
+#		songs.append(song)
 
 
 	# adjust volume off competed calculations
@@ -88,6 +118,9 @@ if __name__ == '__main__':
                 i += 1
 		if (i == total):
 			print(songs)
+
+
+
 
 	# then loop the hrtz values and adjust each
 	j = 0
