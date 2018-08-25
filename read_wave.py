@@ -33,28 +33,43 @@ if __name__ == '__main__':
 	# for returning htz values later
 	def get_levels(file):
         	file_name = file.replace(current_dir + "/" + folder + "/", "")
-	        print("Processing: " + file_name)
+	        print("Processing: " + str(file_name))
 		mode = "r"
 		sizes = {1: "B", 2: "h", 4: "i"}
 		wav_file = wave.open(file, mode)
 
 		channels = wav_file.getnchannels()
+		print("channels: " + str(channels))
 		samples = wav_file.getsampwidth()
-		print(samples)
+		print("samples: " + str(samples))
 		frames = wav_file.getnframes()
 		fmt_size = sizes[samples]
-		fmt = "<" + fmt_size * channels
-
+		print("size: " + str(fmt_size))
+		fp = channels * samples
+		print("fp: " + str(fp))
+		fmt = "<" + fmt_size * fp
+		print("fmt: " + str(fmt))
 		while wav_file.tell() < wav_file.getnframes():
 			try:
+				channels = wav_file.getnchannels()
+			        print("channels: " + str(channels))
+		                samples = wav_file.getsampwidth()
+		                print("samples: " + str(samples))
+		                frames = wav_file.getnframes()
+		                fmt_size = sizes[samples]
+		                print("size: " + str(fmt_size))
+		                fp = channels * samples
+		                print("fp: " + str(fp))
+		                fmt = "<" + fmt_size * fp
+		                print("fmt: " + str(fmt))
 				decoded = struct.unpack(fmt, wav_file.readframes(channels))
 			except struct.error:
 	        		# (w.getnframes() - w.tell()) < chunk_size
 				tmp_size = wav_file.getnframes() - wav_file.tell()
-				tmp_fmt = "<{0}h".format(channels)
-				decoded = struct.unpack(tmp_fmt, wav_file.readframes(tmp_size))
+				tmp_fmt = "<{0}h".format(16)
+				decoded = struct.unpack(tmp_fmt, wav_file.readframes(channels))
 
-
+		print(decoded)
 
 
 #		while wav_file.tell() < wav_file.getnframes():
@@ -114,7 +129,8 @@ if __name__ == '__main__':
 	# loop and get htz for each file
         i = 0
         while i < total:
-                get_levels(files[i])
+		if (i == 0):
+                	get_levels(files[i])
                 i += 1
 		if (i == total):
 			print(songs)
